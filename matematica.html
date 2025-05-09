@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Matemática</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #e9f5db;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #588157;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .question-container {
+            font-size: 2em;
+            color: #3a5a40;
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 3px dashed #a3b18a;
+            border-radius: 15px;
+            min-width: 300px;
+        }
+        .question {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .visual-aid {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .item {
+            width: 40px;
+            height: 40px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .options {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .option {
+            width: 80px;
+            height: 80px;
+            border: 3px solid #a3b18a;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            background-color: #f0f8ff;
+        }
+        .option:hover {
+            transform: scale(1.05);
+            border-color: #588157;
+            background-color: #e9f5db;
+        }
+        .feedback {
+            font-size: 1.5em;
+            margin-top: 20px;
+            min-height: 50px;
+            font-weight: bold;
+        }
+        .correct {
+            color: #2dc653;
+        }
+        .incorrect {
+            color: #e63946;
+        }
+        .score {
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #3a5a40;
+        }
+        .next-button {
+            background-color: #588157;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+        }
+        .next-button:hover {
+            background-color: #3a5a40;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #588157;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+        .star {
+            position: absolute;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>');
+            background-size: contain;
+            width: 30px;
+            height: 30px;
+        }
+        .game-mode-container {
+            margin-bottom: 20px;
+        }
+        .game-mode-button {
+            background-color: #a3b18a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        .game-mode-button.active {
+            background-color: #588157;
+            font-weight: bold;
+        }
+        .level-container {
+            margin: 10px 0 20px;
+        }
+        .level-button {
+            background-color: #dad7cd;
+            color: #3a5a40;
+            border: none;
+            padding: 5px 15px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: background-color 0.3s;
+        }
+        .level-button.active {
+            background-color: #a3b18a;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Jogo da Matemática</h1>
+        <p>Escolha o modo de jogo e o nível:</p>
+        
+        <div class="game-mode-container">
+            <button class="game-mode-button active" data-mode="count">Contar</button>
+            <button class="game-mode-button" data-mode="add">Adição</button>
+            <button class="game-mode-button" data-mode="subtract">Subtração</button>
+        </div>
+        
+        <div class="level-container">
+            <button class="level-button active" data-level="1">Nível 1</button>
+            <button class="level-button" data-level="2">Nível 2</button>
+            <button class="level-button" data-level="3">Nível 3</button>
+        </div>
+        
+        <div class="game-area">
+            <div class="question-container">
+                <div class="question" id="question">Quantas maçãs você vê?</div>
+                <div class="visual-aid" id="visual-aid"></div>
+            </div>
+            
+            <div class="options" id="options-container">
+                <!-- As opções serão adicionadas dinamicamente pelo JavaScript -->
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+            <div class="score">Pontos: <span id="score">0</span></div>
+            <button class="next-button" id="next-button">Próxima Pergunta</button>
+            <div class="progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="celebration" id="celebration"></div>
+
+    <script>
+        // Elementos do DOM
+        const questionElement = document.getElementById("question");
+        const visualAidElement = document.getElementById("visual-aid");
+        const optionsContainer = document.getElementById("options-container");
+        const feedbackElement = document.getElementById("feedback");
+        const scoreElement = document.getElementById("score");
+        const nextButton = document.getElementById("next-button");
+        const progressBar = document.getElementById("progress-bar");
+        const celebrationElement = document.getElementById("celebration");
+        const gameModeButtons = document.querySelectorAll(".game-mode-button");
+        const levelButtons = document.querySelectorAll(".level-button");
+
+        // Variáveis do jogo
+        let currentRound = 0;
+        let score = 0;
+        let canClick = true;
+        let gameMode = "count"; // count, add, subtract
+        let gameLevel = 1;
+        let totalRounds = 10;
+        let currentAnswer = null;
+        
+        // Imagens para representação visual
+        const itemTypes = [
+            {
+                name: "maçã",
+                emoji: "🍎"
+            },
+            {
+                name: "banana",
+                emoji: "🍌"
+            },
+            {
+                name: "laranja",
+                emoji: "🍊"
+            },
+            {
+                name: "morango",
+                emoji: "🍓"
+            },
+            {
+                name: "estrela",
+                emoji: "⭐"
+            },
+            {
+                name: "coração",
+                emoji: "❤️"
+            },
+            {
+                name: "bola",
+                emoji: "🏀"
+            },
+            {
+                name: "lápis",
+                emoji: "✏️"
+            }
+        ];
+
+        // Configurar os modos de jogo
+        gameModeButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                gameModeButtons.forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+                gameMode = button.getAttribute("data-mode");
+                resetGame();
+            });
+        });
+
+        // Configurar os níveis
+        levelButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                levelButtons.forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+                gameLevel = parseInt(button.getAttribute("data-level"));
+                resetGame();
+            });
+        });
+
+        // Iniciar o jogo
+        function startGame() {
+            currentRound = 0;
+            score = 0;
+            scoreElement.textContent = score;
+            loadRound();
+            updateProgressBar();
+        }
+
+        // Resetar o jogo
+        function resetGame() {
+            startGame();
+        }
+
+        // Carregar uma rodada
+        function loadRound() {
+            if (currentRound >= totalRounds) {
+                endGame();
+                return;
+            }
+
+            feedbackElement.textContent = "";
+            feedbackElement.className = "feedback";
+            canClick = true;
+            nextButton.style.display = "none";
+            
+            // Limpar visual aid e opções anteriores
+            visualAidElement.innerHTML = "";
+            optionsContainer.innerHTML = "";
+
+            // Gerar problema baseado no modo e nível
+            generateProblem();
+            
+            // Atualizar barra de progresso
+            updateProgressBar();
+        }
+
+        // Gerar problema matemático
+        function generateProblem() {
+            const itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+            
+            switch(gameMode) {
+                case "count":
+                    generateCountingProblem(itemType);
+                    break;
+                case "add":
+                    generateAdditionProblem(itemType);
+                    break;
+                case "subtract":
+                    generateSubtractionProblem(itemType);
+                    break;
+            }
+        }
+
+        // Gerar problema de contagem
+        function generateCountingProblem(itemType) {
+            const maxItems = gameLevel === 1 ? 5 : gameLevel === 2 ? 10 : 20;
+            const count = Math.floor(Math.random() * maxItems) + 1;
+            currentAnswer = count;
+            
+            questionElement.textContent = `Quantos ${itemType.name}s você vê?`;
+            
+            // Adicionar itens visuais
+            for (let i = 0; i < count; i++) {
+                const item = document.createElement("div");
+                item.className = "item";
+                item.textContent = itemType.emoji;
+                item.style.fontSize = "30px";
+                visualAidElement.appendChild(item);
+            }
+            
+            // Gerar opções
+            generateOptions(count, maxItems);
+        }
+
+        // Gerar problema de adição
+        function generateAdditionProblem(itemType) {
+            const maxNumber = gameLevel === 1 ? 5 : gameLevel === 2 ? 10 : 15;
+            const num1 = Math.floor(Math.random() * maxNumber) + 1;
+            const num2 = Math.floor(Math.random() * maxNumber) + 1;
+            currentAnswer = num1 + num2;
+            
+            questionElement.textContent = `${num1} + ${num2} = ?`;
+            
+            // Adicionar representação visual
+            const group1 = document.createElement("div");
+            group1.style.display = "flex";
+            group1.style.marginRight = "20px";
+            
+            const group2 = document.createElement("div");
+            group2.style.display = "flex";
+            
+            const plus = document.createElement("div");
+            plus.textContent = "+";
+            plus.style.margin = "0 10px";
+            plus.style.fontSize = "30px";
+            plus.style.alignSelf = "center";
+            
+            for (let i = 0; i < num1; i++) {
+                const item = document.createElement("div");
+                item.className = "item";
+                item.textContent = itemType.emoji;
+                item.style.fontSize = "30px";
+                group1.appendChild(item);
+            }
+            
+            for (let i = 0; i < num2; i++) {
+                const item = document.createElement("div");
+                item.className = "item";
+                item.textContent = itemType.emoji;
+                item.style.fontSize = "30px";
+                group2.appendChild(item);
+            }
+            
+            visualAidElement.appendChild(group1);
+            visualAidElement.appendChild(plus);
+            visualAidElement.appendChild(group2);
+            
+            // Gerar opções
+            generateOptions(num1 + num2, maxNumber * 2);
+        }
+
+        // Gerar problema de subtração
+        function generateSubtractionProblem(itemType) {
+            const maxNumber = gameLevel === 1 ? 10 : gameLevel === 2 ? 15 : 20;
+            let num1 = Math.floor(Math.random() * maxNumber) + 1;
+            let num2 = Math.floor(Math.random() * num1) + 1; // Garantir que num2 <= num1
+            currentAnswer = num1 - num2;
+            
+            questionElement.textContent = `${num1} - ${num2} = ?`;
+            
+            // Adicionar representação visual
+            const group = document.createElement("div");
+            group.style.display = "flex";
+            group.style.flexWrap = "wrap";
+            group.style.justifyContent = "center";
+            
+            for (let i = 0; i < num1; i++) {
+                const item = document.createElement("div");
+                item.className = "item";
+                item.textContent = itemType.emoji;
+                item.style.fontSize = "30px";
+                
+                // Marcar os itens a serem "removidos"
+                if (i < num2) {
+                    item.style.opacity = "0.5";
+                    item.style.textDecoration = "line-through";
+                }
+                
+                group.appendChild(item);
+            }
+            
+            visualAidElement.appendChild(group);
+            
+            // Gerar opções
+            generateOptions(num1 - num2, maxNumber);
+        }
+
+        // Gerar opções de resposta
+        function generateOptions(correctAnswer, maxValue) {
+            const numberOfOptions = 4;
+            let options = [correctAnswer];
+            
+            // Gerar opções incorretas únicas
+            while (options.length < numberOfOptions) {
+                const option = Math.floor(Math.random() * maxValue) + 1;
+                if (!options.includes(option)) {
+                    options.push(option);
+                }
+            }
+            
+            // Embaralhar as opções
+            options = options.sort(() => Math.random() - 0.5);
+            
+            // Adicionar botões de opção
+            options.forEach(option => {
+                const optionButton = document.createElement("div");
+                optionButton.className = "option";
+                optionButton.textContent = option;
+                optionButton.addEventListener("click", () => checkAnswer(option));
+                optionsContainer.appendChild(optionButton);
+            });
+        }
+
+        // Verificar a resposta
+        function checkAnswer(selectedAnswer) {
+            if (!canClick) return;
+            
+            canClick = false;
+            const isCorrect = selectedAnswer === currentAnswer;
+            
+            if (isCorrect) {
+                feedbackElement.textContent = "Correto! Muito bem!";
+                feedbackElement.className = "feedback correct";
+                score += 10;
+                scoreElement.textContent = score;
+                createStars();
+            } else {
+                feedbackElement.textContent = `Ops! A resposta correta é ${currentAnswer}.`;
+                feedbackElement.className = "feedback incorrect";
+            }
+            
+            nextButton.style.display = "block";
+        }
+
+        // Ir para a próxima rodada
+        function nextRound() {
+            currentRound++;
+            loadRound();
+        }
+
+        // Atualizar a barra de progresso
+        function updateProgressBar() {
+            const progress = (currentRound / totalRounds) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Finalizar o jogo
+        function endGame() {
+            questionElement.textContent = "Jogo Finalizado!";
+            visualAidElement.innerHTML = "";
+            optionsContainer.innerHTML = "";
+            feedbackElement.textContent = `Parabéns! Você completou o jogo com ${score} pontos!`;
+            feedbackElement.className = "feedback correct";
+            nextButton.style.display = "none";
+            
+            // Adicionar botão para jogar novamente
+            const playAgainButton = document.createElement("button");
+            playAgainButton.textContent = "Jogar Novamente";
+            playAgainButton.className = "next-button";
+            playAgainButton.style.display = "block";
+            playAgainButton.addEventListener("click", resetGame);
+            optionsContainer.appendChild(playAgainButton);
+            
+            // Celebração final
+            createStars(true);
+        }
+
+        // Criar efeito de estrelas
+        function createStars(isFinal = false) {
+            celebrationElement.style.display = "block";
+            celebrationElement.innerHTML = "";
+            
+            const starCount = isFinal ? 50 : 20;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement("div");
+                star.className = "star";
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `-30px`;
+                star.style.width = `${Math.random() * 20 + 10}px`;
+                star.style.height = star.style.width;
+                
+                celebrationElement.appendChild(star);
+                
+                const animation = star.animate(
+                    [
+                        { transform: "translateY(0) rotate(0deg)", opacity: 1 },
+                        { transform: `translateY(${window.innerHeight}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                    ],
+                    {
+                        duration: Math.random() * 1500 + 1500,
+                        easing: "cubic-bezier(0.37, 0, 0.63, 1)"
+                    }
+                );
+                
+                animation.onfinish = () => {
+                    star.remove();
+                    if (celebrationElement.children.length === 0) {
+                        celebrationElement.style.display = "none";
+                    }
+                };
+            }
+        }
+
+        // Event listeners
+        nextButton.addEventListener("click", nextRound);
+
+        // Iniciar o jogo quando a página carregar
+        window.addEventListener("load", startGame);
+    </script>
+</body>
+</html>
